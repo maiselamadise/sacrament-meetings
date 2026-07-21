@@ -1,94 +1,86 @@
-import { neon } from '@neondatabase/serverless';
-import type { SacramentMeeting } from './types';
-
-const sql = neon(process.env.DATABASE_URL!);
+import { neon } from "@neondatabase/serverless";
+import type { SacramentMeeting } from "./types";
 
 const ITEMS_PER_PAGE = 5;
 
-export async function getMeetings(
-  query: string = '',
-  currentPage: number = 1
-): Promise<SacramentMeeting[]> {
-  const searchTerm = `%${query}%`;
-  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+function getSql() {
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) {
+    throw new Error("DATABASE_URL is not configured. Pull your Vercel environment variables into .env.local.");
+  }
+  return neon(databaseUrl);
+}
 
-  const rows = await sql`
-    SELECT
-      id,
-      to_char(date, 'YYYY-MM-DD') AS "date",
-      meeting_type                AS "meetingType",
-      presiding, conducting, announcements,
-      opening_hymn                AS "openingHymn",
-      opening_prayer              AS "openingPrayer",
-      ward_business               AS "wardBusiness",
-      stake_business              AS "stakeBusiness",
-      sacrament_hymn              AS "sacramentHymn",
-      speakers,
-      closing_hymn                AS "closingHymn",
-      closing_prayer              AS "closingPrayer"
-    FROM meetings
-    WHERE
-      presiding     ILIKE ${searchTerm}
-      OR conducting ILIKE ${searchTerm}
-      OR meeting_type ILIKE ${searchTerm}
-      OR speakers::text ILIKE ${searchTerm}
-    ORDER BY date DESC
-    LIMIT ${ITEMS_PER_PAGE} OFFSET ${offset}
-  `;
+const meetingFields = `
+  id,
+  to_char(date, 'YYYY-MM-DD') AS "date",
+  meeting_type AS "meetingType",
+  presiding, conducting, announcements,
+  opening_hymn AS "openingHymn",
+  opening_prayer AS "openingPrayer",
+  ward_business AS "wardBusiness",
+  stake_business AS "stakeBusiness",
+  sacrament_hymn AS "sacramentHymn",
+  speakers,
+  closing_hymn AS "closingHymn",
+  closing_prayer AS "closingPrayer"
+`;
+
+function normalizePage(currentPage: number): number {
+  return Number.isInteger(currentPage) && currentPage > 0 ? currentPage : 1;
+}
+
+export async function getMeetings(query = "", currentPage = 1): Promise<SacramentMeeting[]> {
+  const sql = getSql();
+  const searchTerm = `%${query.trim()}%`;
+  const offset = (normalizePage(currentPage) - 1) * ITEMS_PER_PAGE;
+  const rows = await sql.query(
+    `SELECT ${meetingFields} FROM meetings
+     WHERE presiding ILIKE $1 OR conducting ILIKE $1 OR meeting_type ILIKE $1 OR speakers::text ILIKE $1
+     ORDER BY date DESC LIMIT $2 OFFSET $3`,
+    [searchTerm, ITEMS_PER_PAGE, offset],
+  );
   return rows as unknown as SacramentMeeting[];
 }
 
-export async function getMeetingsTotalPages(
-  query: string = ''
-): Promise<number> {
-  const searchTerm = `%${query}%`;
-  const rows = await sql`
-    SELECT COUNT(*) FROM meetings
-    WHERE
-      presiding     ILIKE ${searchTerm}
-      OR conducting ILIKE ${searchTerm}
-      OR meeting_type ILIKE ${searchTerm}
-      OR speakers::text ILIKE ${searchTerm}
-  `;
-  return Math.ceil(Number(rows[0].count) / ITEMS_PER_PAGE);
+export async function getMeetingsTotalPages(query = ""): Promise<number> {
+  const sql = getSql();
+  const searchTerm = `%${query.trim()}%`;
+  const rows = await sql.query(
+    `SELECT COUNT(*) AS count FROM meetings
+     WHERE presiding ILIKE $1 OR conducting ILIKE $1 OR meeting_type ILIKE $1 OR speakers::text ILIKE $1`,
+    [searchTerm],
+  );
+  return Math.ceil(Number(rows[0]?.count ?? 0) / ITEMS_PER_PAGE);
 }
 
-export async function getMeetingById(
-  id: number
-): Promise<SacramentMeeting | null> {
-  const rows = await sql`
-    SELECT
-      id,
-      to_char(date, 'YYYY-MM-DD') AS "date",
-      meeting_type                AS "meetingType",
-      presiding, conducting, announcements,
-      opening_hymn                AS "openingHymn",
-      opening_prayer              AS "openingPrayer",
-      ward_business               AS "wardBusiness",
-      stake_business              AS "stakeBusiness",
-      sacrament_hymn              AS "sacramentHymn",
-      speakers,
-      closing_hymn                AS "closingHymn",
-      closing_prayer              AS "closingPrayer"
-    FROM meetings WHERE id = ${id}
-  `;
-  return (rows[0] as unknown as SacramentMeeting) ?? null;
+export async function getMeetingsByDate(date: string): Promise<SacramentMeeting[]> {
+  const sql = getSql();
+  const rows = await sql.query(`SELECT ${meetingFields} FROM meetings WHERE date = $1`, [date]);
+  return rows as unknown as SacramentMeeting[];
 }
 
-// Mutation stubs — will be wired to the database in Week 04
-export async function addMeeting(
-  data: Omit<SacramentMeeting, 'id'>
-): Promise<SacramentMeeting> {
-  throw new Error('addMeeting: database implementation coming in Week 04');
+export async function getMeetingById(id: number): Promise<SacramentMeeting | null> {
+  const sql = getSql();
+  const rows = await sql.query(`SELECT ${meetingFields} FROM meetings WHERE id = $1`, [id]);
+  return (rows[0] as SacramentMeeting | undefined) ?? null;
+}
+
+export async function addMeeting(_data: Omit<SacramentMeeting, "id">): Promise<SacramentMeeting> {
+  void _data;
+  throw new Error("addMeeting: database implementation coming in Week 04");
 }
 
 export async function updateMeeting(
-  id: number,
-  updates: Partial<SacramentMeeting>
+  _id: number,
+  _updates: Partial<SacramentMeeting>,
 ): Promise<SacramentMeeting | null> {
-  throw new Error('updateMeeting: database implementation coming in Week 04');
+  void _id;
+  void _updates;
+  throw new Error("updateMeeting: database implementation coming in Week 04");
 }
 
-export async function deleteMeeting(id: number): Promise<boolean> {
-  throw new Error('deleteMeeting: database implementation coming in Week 04');
+export async function deleteMeeting(_id: number): Promise<boolean> {
+  void _id;
+  throw new Error("deleteMeeting: database implementation coming in Week 04");
 }
