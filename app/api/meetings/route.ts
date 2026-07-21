@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getMeetings } from "@/lib/meetings-db";
+import { getMeetings } from '@/lib/meetings-db';
+import { NextResponse } from 'next/server';
 
-export function GET(request: NextRequest) {
-  const date = request.nextUrl.searchParams.get("date");
-  return NextResponse.json(getMeetings(date));
+export async function GET() {
+  const meetings = await getMeetings();
+
+  return NextResponse.json(meetings);
 }
