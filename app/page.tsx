@@ -7,7 +7,7 @@ export default function Home() {
       <div>
         <p className="eyebrow">Springfield Ward</p>
         <h1 className="mt-3 max-w-2xl text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
-          A clear, welcoming program for every Sunday.
+          Sunday Welcoming Program.
         </h1>
         <p className="mt-5 max-w-xl text-lg leading-8 text-slate-600">
           View current and past sacrament meeting agendas, including hymns,
@@ -24,12 +24,12 @@ export default function Home() {
       </div>
       <div className="rounded-3xl border border-sky-100 bg-sky-50 p-10 text-center shadow-sm">
         <Image
-          src="/globe.svg"
-          alt="Globe illustration representing a connected ward community"
-          width={180}
-          height={180}
+          src="/springfield-chapel.webp"
+          alt="Springfield Ward chapel"
+          width={700}
+          height={500}
           priority
-          className="mx-auto h-auto"
+          className="h-full w-full object-cover"
         />
         <p className="mt-6 font-heading text-xl font-semibold text-slate-800">
           Meeting programs in one place
