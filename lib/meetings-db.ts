@@ -33,13 +33,18 @@ function normalizePage(currentPage: number): number {
 export async function getMeetings(query = "", currentPage = 1): Promise<SacramentMeeting[]> {
   const sql = getSql();
   const searchTerm = `%${query.trim()}%`;
+  const returnAllMeetings = arguments.length === 0;
   const offset = (normalizePage(currentPage) - 1) * ITEMS_PER_PAGE;
-  const rows = await sql.query(
-    `SELECT ${meetingFields} FROM meetings
+
+  const queryText = `SELECT ${meetingFields} FROM meetings
      WHERE presiding ILIKE $1 OR conducting ILIKE $1 OR meeting_type ILIKE $1 OR speakers::text ILIKE $1
-     ORDER BY date DESC LIMIT $2 OFFSET $3`,
-    [searchTerm, ITEMS_PER_PAGE, offset],
-  );
+     ORDER BY date DESC${returnAllMeetings ? "" : " LIMIT $2 OFFSET $3"}`;
+
+  const queryValues = returnAllMeetings
+    ? [searchTerm]
+    : [searchTerm, ITEMS_PER_PAGE, offset];
+
+  const rows = await sql.query(queryText, queryValues);
   return rows as unknown as SacramentMeeting[];
 }
 

@@ -1,14 +1,27 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import NavLinks from "@/components/NavLinks";
 
-export default function Header() {
-  const today = new Intl.DateTimeFormat("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-    timeZone: "Africa/Johannesburg",
-  }).format(new Date());
+function CurrentDate() {
+  const [today, setToday] = useState("");
 
+  useEffect(() => {
+    setToday(
+      new Intl.DateTimeFormat("en-US", {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+        timeZone: "Africa/Johannesburg",
+      }).format(new Date()),
+    );
+  }, []);
+
+  return <p className="text-xs text-slate-500">{today}</p>;
+}
+
+export default function Header() {
   return (
     <header className="border-b border-slate-200 bg-white shadow-sm">
       <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-4 sm:px-6 md:flex-row md:items-center md:justify-between">
@@ -20,7 +33,7 @@ export default function Header() {
         </div>
         <div className="flex flex-col gap-2 md:items-end">
           <NavLinks />
-          <p className="text-xs text-slate-500">{today}</p>
+          <CurrentDate />
         </div>
       </div>
     </header>
