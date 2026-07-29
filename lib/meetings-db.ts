@@ -71,21 +71,107 @@ export async function getMeetingById(id: number): Promise<SacramentMeeting | nul
   return (rows[0] as SacramentMeeting | undefined) ?? null;
 }
 
-export async function addMeeting(_data: Omit<SacramentMeeting, "id">): Promise<SacramentMeeting> {
-  void _data;
-  throw new Error("addMeeting: database implementation coming in Week 04");
+export async function addMeeting(data: Omit<SacramentMeeting, "id">): Promise<SacramentMeeting> {
+  const sql = getSql();
+
+  try {
+    const rows = await sql.query(
+      `INSERT INTO meetings (
+        date,
+        meeting_type,
+        presiding,
+        conducting,
+        announcements,
+        opening_hymn,
+        opening_prayer,
+        ward_business,
+        stake_business,
+        sacrament_hymn,
+        speakers,
+        closing_hymn,
+        closing_prayer
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING id`,
+      [
+        data.date,
+        data.meetingType,
+        data.presiding,
+        data.conducting,
+        JSON.stringify(data.announcements ?? []),
+        JSON.stringify(data.openingHymn),
+        data.openingPrayer,
+        JSON.stringify(data.wardBusiness),
+        data.stakeBusiness,
+        JSON.stringify(data.sacramentHymn),
+        JSON.stringify(data.speakers),
+        JSON.stringify(data.closingHymn),
+        data.closingPrayer,
+      ],
+    );
+
+    return { ...data, id: Number(rows[0]?.id ?? 0) };
+  } catch (error) {
+    console.error("Failed to add meeting", error);
+    throw new Error("Failed to create meeting.");
+  }
 }
 
 export async function updateMeeting(
-  _id: number,
-  _updates: Partial<SacramentMeeting>,
+  id: number,
+  updates: Partial<SacramentMeeting>,
 ): Promise<SacramentMeeting | null> {
-  void _id;
-  void _updates;
-  throw new Error("updateMeeting: database implementation coming in Week 04");
+  const sql = getSql();
+
+  try {
+    await sql.query(
+      `UPDATE meetings SET
+        date = COALESCE($1, date),
+        meeting_type = COALESCE($2, meeting_type),
+        presiding = COALESCE($3, presiding),
+        conducting = COALESCE($4, conducting),
+        announcements = COALESCE($5, announcements),
+        opening_hymn = COALESCE($6, opening_hymn),
+        opening_prayer = COALESCE($7, opening_prayer),
+        ward_business = COALESCE($8, ward_business),
+        stake_business = COALESCE($9, stake_business),
+        sacrament_hymn = COALESCE($10, sacrament_hymn),
+        speakers = COALESCE($11, speakers),
+        closing_hymn = COALESCE($12, closing_hymn),
+        closing_prayer = COALESCE($13, closing_prayer)
+      WHERE id = $14`,
+      [
+        updates.date ?? null,
+        updates.meetingType ?? null,
+        updates.presiding ?? null,
+        updates.conducting ?? null,
+        updates.announcements ? JSON.stringify(updates.announcements) : null,
+        updates.openingHymn ? JSON.stringify(updates.openingHymn) : null,
+        updates.openingPrayer ?? null,
+        updates.wardBusiness ? JSON.stringify(updates.wardBusiness) : null,
+        updates.stakeBusiness ?? null,
+        updates.sacramentHymn ? JSON.stringify(updates.sacramentHymn) : null,
+        updates.speakers ? JSON.stringify(updates.speakers) : null,
+        updates.closingHymn ? JSON.stringify(updates.closingHymn) : null,
+        updates.closingPrayer ?? null,
+        id,
+      ],
+    );
+
+    return getMeetingById(id);
+  } catch (error) {
+    console.error("Failed to update meeting", error);
+    throw new Error("Failed to update meeting.");
+  }
 }
 
-export async function deleteMeeting(_id: number): Promise<boolean> {
-  void _id;
-  throw new Error("deleteMeeting: database implementation coming in Week 04");
+export async function deleteMeeting(id: number): Promise<boolean> {
+  const sql = getSql();
+
+  try {
+    const result = await sql.query(`DELETE FROM meetings WHERE id = $1`, [id]);
+    const rows = Array.isArray(result) ? result : [];
+    return rows.length > 0;
+  } catch (error) {
+    console.error("Failed to delete meeting", error);
+    throw new Error("Failed to delete meeting.");
+  }
 }
