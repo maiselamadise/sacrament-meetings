@@ -172,7 +172,6 @@ export async function deleteMeeting(formData: FormData): Promise<void> {
   try {
     await deleteMeetingFromDb(meetingId);
     revalidatePath('/meetings');
-    redirect('/meetings');
   } catch (error) {
     console.error(error);
   }
