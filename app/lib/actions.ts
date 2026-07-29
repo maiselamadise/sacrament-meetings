@@ -2,7 +2,6 @@
 
 import { sql } from '@vercel/postgres';
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { addMeeting, deleteMeeting as deleteMeetingFromDb, updateMeeting as updateMeetingInDb } from '@/lib/meetings-db';
 
@@ -90,7 +89,6 @@ export async function createMeeting(prevState: State, formData: FormData): Promi
     });
 
     revalidatePath('/meetings');
-    redirect('/meetings');
   } catch (error) {
     console.error(error);
     return {
@@ -98,7 +96,7 @@ export async function createMeeting(prevState: State, formData: FormData): Promi
     };
   }
 
-  return { message: null };
+  return { message: 'Meeting created successfully.' };
 }
 
 export async function updateMeeting(prevState: State, id: string, formData: FormData): Promise<State> {
@@ -158,7 +156,7 @@ export async function updateMeeting(prevState: State, id: string, formData: Form
     };
   }
 
-  return { message: null };
+  return { message: 'Meeting updated successfully.' };
 }
 
 export async function deleteMeeting(formData: FormData): Promise<void> {
@@ -209,13 +207,14 @@ export async function createProject(prevState: State, formData: FormData): Promi
     `;
 
     revalidatePath('/projects');
-    redirect('/projects');
   } catch (error) {
     console.error(error);
     return {
       message: 'Unable to save the project right now.',
     };
   }
+
+  return { message: 'Project created successfully.' };
 
   return { message: null };
 }
