@@ -30,6 +30,15 @@ function normalizePage(currentPage: number): number {
   return Number.isInteger(currentPage) && currentPage > 0 ? currentPage : 1;
 }
 
+function toPostgresArrayLiteral(values: string[]): string {
+  if (!values.length) {
+    return '{}';
+  }
+
+  const escapedValues = values.map((value) => value.replace(/"/g, '""'));
+  return `{${escapedValues.map((value) => `"${value}"`).join(',')}}`;
+}
+
 export async function getMeetings(query = "", currentPage = 1): Promise<SacramentMeeting[]> {
   const sql = getSql();
   const searchTerm = `%${query.trim()}%`;
@@ -96,13 +105,13 @@ export async function addMeeting(data: Omit<SacramentMeeting, "id">): Promise<Sa
         data.meetingType,
         data.presiding,
         data.conducting,
-        JSON.stringify(data.announcements ?? []),
+        toPostgresArrayLiteral(data.announcements ?? []),
         JSON.stringify(data.openingHymn),
         data.openingPrayer,
-        JSON.stringify(data.wardBusiness),
+        toPostgresArrayLiteral([]),
         data.stakeBusiness,
         JSON.stringify(data.sacramentHymn),
-        JSON.stringify(data.speakers),
+        toPostgresArrayLiteral([]),
         JSON.stringify(data.closingHymn),
         data.closingPrayer,
       ],
@@ -143,13 +152,13 @@ export async function updateMeeting(
         updates.meetingType ?? null,
         updates.presiding ?? null,
         updates.conducting ?? null,
-        updates.announcements ? JSON.stringify(updates.announcements) : null,
+        updates.announcements ? toPostgresArrayLiteral(updates.announcements) : null,
         updates.openingHymn ? JSON.stringify(updates.openingHymn) : null,
         updates.openingPrayer ?? null,
-        updates.wardBusiness ? JSON.stringify(updates.wardBusiness) : null,
+        updates.wardBusiness ? toPostgresArrayLiteral([]) : null,
         updates.stakeBusiness ?? null,
         updates.sacramentHymn ? JSON.stringify(updates.sacramentHymn) : null,
-        updates.speakers ? JSON.stringify(updates.speakers) : null,
+        updates.speakers ? toPostgresArrayLiteral([]) : null,
         updates.closingHymn ? JSON.stringify(updates.closingHymn) : null,
         updates.closingPrayer ?? null,
         id,

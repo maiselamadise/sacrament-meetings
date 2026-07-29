@@ -48,6 +48,12 @@ export default function MeetingCard({ meeting }: MeetingCardProps) {
         >
           View agenda<span aria-hidden="true"> →</span>
         </Link>
+        <Link
+          className="inline-flex rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+          href={`/meetings/${meeting.id}/edit`}
+        >
+          Edit
+        </Link>
         <form action={deleteMeeting}>
           <input name="meetingId" type="hidden" value={meeting.id} />
           <button

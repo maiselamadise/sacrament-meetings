@@ -151,7 +151,6 @@ export async function updateMeeting(prevState: State, id: string, formData: Form
     });
 
     revalidatePath('/meetings');
-    redirect('/meetings');
   } catch (error) {
     console.error(error);
     return {
