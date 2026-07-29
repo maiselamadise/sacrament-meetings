@@ -1,5 +1,6 @@
 'use server';
 
+import { sql } from '@vercel/postgres';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
@@ -177,8 +178,48 @@ export async function deleteMeeting(formData: FormData): Promise<void> {
   }
 }
 
+const ProjectFormSchema = z.object({
+  title: z.string().min(3, 'Title must be at least 3 characters.'),
+  description: z.string().min(20, 'Description must be at least 20 characters.'),
+  technologies: z.string().min(2, 'Add at least one technology.'),
+  yearCompleted: z.coerce
+    .number()
+    .int('Year must be a whole number.')
+    .gte(2000, 'Year must be 2000 or later.')
+    .lte(new Date().getFullYear(), 'Year cannot be greater than the current year.'),
+});
+
 export async function createProject(prevState: State, formData: FormData): Promise<State> {
-  return createMeeting(prevState, formData);
+  const validatedFields = ProjectFormSchema.safeParse({
+    title: formData.get('title'),
+    description: formData.get('description'),
+    technologies: formData.get('technologies'),
+    yearCompleted: formData.get('yearCompleted'),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      errors: toFieldErrors(validatedFields.error),
+      message: 'Please correct the highlighted fields.',
+    };
+  }
+
+  try {
+    await sql`
+      INSERT INTO projects (title, description, technologies, year_completed)
+      VALUES (${validatedFields.data.title}, ${validatedFields.data.description}, ${validatedFields.data.technologies}, ${validatedFields.data.yearCompleted})
+    `;
+
+    revalidatePath('/projects');
+    redirect('/projects');
+  } catch (error) {
+    console.error(error);
+    return {
+      message: 'Unable to save the project right now.',
+    };
+  }
+
+  return { message: null };
 }
 
 export async function updateProject(prevState: State, id: string, formData: FormData): Promise<State> {

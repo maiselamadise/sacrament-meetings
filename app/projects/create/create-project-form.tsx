@@ -53,7 +53,7 @@ export default function CreateProjectForm() {
           id="title"
           name="title"
           type="text"
-          defaultValue={state.values?.title}
+          defaultValue={currentState.values?.title}
           className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
           aria-describedby="title-error"
         />
@@ -80,7 +80,7 @@ export default function CreateProjectForm() {
           id="description"
           name="description"
           rows={5}
-          defaultValue={state.values?.description}
+          defaultValue={currentState.values?.description}
           className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
           aria-describedby="description-error"
         />
@@ -107,7 +107,7 @@ export default function CreateProjectForm() {
           id="technologies"
           name="technologies"
           type="text"
-          defaultValue={state.values?.technologies}
+          defaultValue={currentState.values?.technologies}
           className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
           aria-describedby="technologies-error"
         />
@@ -136,7 +136,7 @@ export default function CreateProjectForm() {
           type="number"
           min="2000"
           max="2099"
-          defaultValue={state.values?.yearCompleted}
+          defaultValue={currentState.values?.yearCompleted}
           className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
           aria-describedby="yearCompleted-error"
         />
