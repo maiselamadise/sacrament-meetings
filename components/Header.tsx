@@ -1,22 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import NavLinks from "@/components/NavLinks";
 
 function CurrentDate() {
-  const [today, setToday] = useState("");
-
-  useEffect(() => {
-    setToday(
-      new Intl.DateTimeFormat("en-US", {
-        weekday: "long",
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-        timeZone: "Africa/Johannesburg",
-      }).format(new Date()),
-    );
-  }, []);
+  const today = new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "Africa/Johannesburg",
+  }).format(new Date());
 
   return <p className="text-xs text-slate-500">{today}</p>;
 }
@@ -29,7 +22,9 @@ export default function Header() {
           <p className="font-heading text-xl font-bold text-slate-900">
             Springfield Ward
           </p>
-          <p className="text-sm text-slate-600">Sacrament Meeting Planner</p>
+          <p className="text-sm text-slate-600">
+            Sacrament Meeting Planner
+          </p>
         </div>
         <div className="flex flex-col gap-2 md:items-end">
           <NavLinks />
