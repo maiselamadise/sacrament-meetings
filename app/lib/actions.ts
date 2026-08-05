@@ -3,12 +3,22 @@
 import { sql } from '@vercel/postgres';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { auth, signIn } from '@/auth';
+import { AuthError } from 'next-auth';
 import { addMeeting, deleteMeeting as deleteMeetingFromDb, updateMeeting as updateMeetingInDb } from '@/lib/meetings-db';
 
 export type State = {
   message?: string | null;
   errors?: Record<string, string[]>;
 };
+
+async function requireOwnerSession() {
+  const session = await auth();
+  if (!session?.user) {
+    throw new Error('Not authenticated');
+  }
+  return session;
+}
 
 const MeetingFormSchema = z.object({
   date: z.string().min(1, 'Date is required.'),
@@ -40,6 +50,8 @@ function parseAnnouncements(value: FormDataEntryValue | null) {
 }
 
 export async function createMeeting(prevState: State, formData: FormData): Promise<State> {
+  await requireOwnerSession();
+
   const validatedFields = MeetingFormSchema.safeParse({
     date: formData.get('date'),
     meetingType: formData.get('meetingType'),
@@ -100,6 +112,8 @@ export async function createMeeting(prevState: State, formData: FormData): Promi
 }
 
 export async function updateMeeting(prevState: State, id: string, formData: FormData): Promise<State> {
+  await requireOwnerSession();
+
   const validatedFields = MeetingFormSchema.safeParse({
     date: formData.get('date'),
     meetingType: formData.get('meetingType'),
@@ -160,6 +174,8 @@ export async function updateMeeting(prevState: State, id: string, formData: Form
 }
 
 export async function deleteMeeting(formData: FormData): Promise<void> {
+  await requireOwnerSession();
+
   const meetingId = Number(formData.get('meetingId'));
 
   if (!Number.isInteger(meetingId) || meetingId < 1) {
@@ -186,6 +202,8 @@ const ProjectFormSchema = z.object({
 });
 
 export async function createProject(prevState: State, formData: FormData): Promise<State> {
+  await requireOwnerSession();
+
   const validatedFields = ProjectFormSchema.safeParse({
     title: formData.get('title'),
     description: formData.get('description'),
@@ -215,10 +233,66 @@ export async function createProject(prevState: State, formData: FormData): Promi
   }
 
   return { message: 'Project created successfully.' };
-
-  return { message: null };
 }
 
 export async function updateProject(prevState: State, id: string, formData: FormData): Promise<State> {
-  return updateMeeting(prevState, id, formData);
+  await requireOwnerSession();
+
+  const projectId = Number(id);
+  if (!Number.isInteger(projectId) || projectId < 1) {
+    return { message: 'Invalid project id.' };
+  }
+
+  const validatedFields = ProjectFormSchema.safeParse({
+    title: formData.get('title'),
+    description: formData.get('description'),
+    technologies: formData.get('technologies'),
+    yearCompleted: formData.get('yearCompleted'),
+  });
+
+  if (!validatedFields.success) {
+    return {
+      errors: toFieldErrors(validatedFields.error),
+      message: 'Please correct the highlighted fields.',
+    };
+  }
+
+  try {
+    await sql`
+      UPDATE projects
+      SET title = ${validatedFields.data.title},
+          description = ${validatedFields.data.description},
+          technologies = ${validatedFields.data.technologies},
+          year_completed = ${validatedFields.data.yearCompleted}
+      WHERE id = ${projectId}
+    `;
+
+    revalidatePath('/projects');
+  } catch (error) {
+    console.error(error);
+    return {
+      message: 'Unable to save the project right now.',
+    };
+  }
+
+  return { message: 'Project updated successfully.' };
+}
+
+export async function authenticate(
+  prevState: string | undefined,
+  formData: FormData,
+) {
+  try {
+    await signIn('credentials', formData);
+  } catch (error) {
+    if (error instanceof AuthError) {
+      switch (error.type) {
+        case 'CredentialsSignin':
+          return 'Invalid email or password.';
+        default:
+          return 'Something went wrong.';
+      }
+    }
+    throw error; // re-throw so Next.js handles redirects correctly
+  }
 }
