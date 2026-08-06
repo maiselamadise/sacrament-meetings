@@ -1,15 +1,16 @@
 // components/sign-out-button.tsx
-import { signOut } from '@/auth';
+"use client";
+
+import { signOut } from 'next-auth/react';
 
 export function SignOutButton() {
   return (
-    <form
-      action={async () => {
-        'use server';
-        await signOut({ redirectTo: '/' });
-      }}
+    <button
+      type="button"
+      onClick={() => signOut({ callbackUrl: '/' })}
+      className="rounded-md bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
     >
-      <button type="submit">Sign Out</button>
-    </form>
+      Sign Out
+    </button>
   );
 }

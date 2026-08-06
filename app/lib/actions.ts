@@ -283,7 +283,9 @@ export async function authenticate(
   formData: FormData,
 ) {
   try {
-    await signIn('credentials', formData);
+    const email = String(formData.get('email') ?? '');
+    const password = String(formData.get('password') ?? '');
+    await signIn('credentials', { email, password });
   } catch (error) {
     if (error instanceof AuthError) {
       switch (error.type) {

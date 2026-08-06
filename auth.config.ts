@@ -2,6 +2,9 @@
 import type { NextAuthConfig } from 'next-auth';
 
 export const authConfig = {
+  session: {
+    strategy: 'jwt',
+  },
   pages: {
     signIn: '/login', // use your own login page instead of the Auth.js default
   },

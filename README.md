@@ -39,13 +39,19 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 For local development and testing there is a seeded demo account you can use to sign in to the protected admin/dashboard pages:
 
-- Email: owner@example.com
+- Email: admin@example.com
+- Password: Admin123!
 
-The demo account password is NOT stored in the repository. To run locally, copy `.env.example` to `.env.local` and set `OWNER_PASSWORD_HASH` to a bcrypt hash of your chosen password. For example:
+The demo account is configured in `.env.example` as `OWNER_EMAIL` and `OWNER_PASSWORD_HASH` (bcrypt). Copy `.env.example` to `.env.local` for local development:
 
 ```bash
 cp .env.example .env.local
-node -e "console.log(require('bcryptjs').hashSync('Password123!', 10))"
+```
+
+If you want to change the demo password, generate a bcrypt hash locally and update `OWNER_PASSWORD_HASH` in `.env.local`:
+
+```bash
+node -e "console.log(require('bcryptjs').hashSync('YourNewPassword!', 10))"
 # paste the printed hash into .env.local as OWNER_PASSWORD_HASH
 ```
 
