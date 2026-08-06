@@ -20,15 +20,30 @@ const initialState: CreateProjectState = {
   values: {},
 };
 
+function buildProjectValues(formData: FormData): ProjectFormValues {
+  return {
+    title: formData.get('title')?.toString(),
+    description: formData.get('description')?.toString(),
+    technologies: formData.get('technologies')?.toString(),
+    yearCompleted: formData.get('yearCompleted')?.toString(),
+  };
+}
+
 export default function CreateProjectForm() {
-  const [state, formAction, isPending] = useActionState<
-    CreateProjectState,
-    FormData
-  >(
-    createProject as unknown as (
-      state: CreateProjectState,
-      formData: FormData,
-    ) => Promise<CreateProjectState>,
+  const submitProject = async (
+    prevState: CreateProjectState,
+    formData: FormData,
+  ): Promise<CreateProjectState> => {
+    const result = await createProject(prevState, formData);
+
+    return {
+      ...result,
+      values: buildProjectValues(formData),
+    };
+  };
+
+  const [state, formAction, isPending] = useActionState<CreateProjectState, FormData>(
+    submitProject,
     initialState,
   );
 

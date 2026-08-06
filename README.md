@@ -34,3 +34,25 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Demo credentials
+
+For local development and testing there is a seeded demo account you can use to sign in to the protected admin/dashboard pages:
+
+- Email: admin@example.com
+- Password: Admin123!
+
+The demo account is configured in `.env.example` as `OWNER_EMAIL` and `OWNER_PASSWORD_HASH` (bcrypt). Copy `.env.example` to `.env.local` for local development:
+
+```bash
+cp .env.example .env.local
+```
+
+If you want to change the demo password, generate a bcrypt hash locally and update `OWNER_PASSWORD_HASH` in `.env.local`:
+
+```bash
+node -e "console.log(require('bcryptjs').hashSync('YourNewPassword!', 10))"
+# paste the printed hash into .env.local as OWNER_PASSWORD_HASH
+```
+
+Do NOT commit your real `.env.local` file — it should contain secrets and is intended to remain local. Use `.env.example` as a template for collaborators.
